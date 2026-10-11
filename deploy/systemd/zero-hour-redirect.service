@@ -1,0 +1,24 @@
+[Unit]
+Description=ZERO HOUR HTTP to HTTPS redirect
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/zero-hour-web
+Environment=HTTPS_ORIGIN=https://YOUR_HOST_OR_DOMAIN:8088
+ExecStart=/usr/bin/python3 /opt/zero-hour-web/redirect_http.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target
+

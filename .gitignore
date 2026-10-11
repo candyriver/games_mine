@@ -1,0 +1,24 @@
+# Runtime state and secrets
+server_data/
+*.sqlite
+*.sqlite3
+*.db
+*.key
+*.pem
+*.crt
+.env
+.env.*
+!.env.example
+
+# Python and editor artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+

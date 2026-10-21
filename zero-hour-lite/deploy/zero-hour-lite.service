@@ -1,0 +1,25 @@
+[Unit]
+Description=ZERO HOUR lite (HTML5 canvas roguelike, no Godot) on port 8091
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/zero-hour-lite
+Environment=HOST=0.0.0.0
+Environment=PORT=8091
+Environment=SERVER_DATA_DIR=/var/lib/zero-hour-lite
+ExecStart=/usr/bin/python3 /opt/zero-hour-lite/server.py
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/zero-hour-lite
+
+[Install]
+WantedBy=multi-user.target

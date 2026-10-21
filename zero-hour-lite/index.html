@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#101821">
+<title>ZERO HOUR</title>
+<style>
+:root{
+  --bg:#0a1118; --panel:#101821; --panel2:#192630; --card:#1d2b36;
+  --line:#395362; --accent:#72efd2; --text:#e3e9e9; --dim:#a8bbc1;
+  --gold:#ffe28a; --orange:#ff8a61; --red:#d96868; --hp:#ef6571; --xp:#5be0c1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;background:var(--bg);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body{color:var(--text);font-family:system-ui,"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:none}
+#game{display:block;width:100vw;height:100vh;position:fixed;inset:0}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center;z-index:10}
+.screen.hidden{display:none}
+.dim{background:rgba(6,12,17,.82);backdrop-filter:blur(3px)}
+.title{font-size:clamp(34px,7vw,58px);letter-spacing:.28em;font-weight:800;color:#f4f1e8;
+  text-shadow:0 0 28px rgba(114,239,210,.35);margin:0 0 10px}
+.title .dot{color:var(--accent)}
+.sub{color:var(--dim);font-size:14px;letter-spacing:.08em;margin:6px 0 0}
+.hint{color:#92a8b0;font-size:13px;margin-top:18px;letter-spacing:.04em}
+.btn{appearance:none;border:1px solid var(--accent);background:#17312f;color:#f4f1e8;
+  font-size:15px;padding:10px 26px;border-radius:5px;cursor:pointer;font-family:inherit;
+  transition:background .15s,transform .1s}
+.btn:hover{background:#1d3f3c}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.5;cursor:default}
+.input{box-sizing:border-box;width:100%;height:44px;padding:0 14px;border:1px solid var(--accent);
+  border-radius:5px;background:#10191e;color:#f4f1e8;font-size:16px;outline:none;font-family:inherit}
+.input::placeholder{color:#6b7f88}
+form.name-form{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(320px,82vw);margin-top:26px}
+.err{color:#ff8a8d;font-size:13px;min-height:18px;margin-top:8px}
+/* ---- level up ---- */
+#levelup .cards{display:flex;gap:14px;margin:26px 0 18px;flex-wrap:wrap;justify-content:center}
+.card{width:190px;min-height:132px;background:var(--card);border:1px solid var(--line);border-radius:8px;
+  padding:16px 14px;cursor:pointer;text-align:left;transition:transform .12s,border-color .12s,background .12s;
+  display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;
+  font-family:inherit;color:inherit}
+.card:before{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:var(--accent);opacity:.65}
+.card:hover,.card.sel{border-color:var(--accent);background:#233742;transform:translateY(-3px)}
+.card .key{position:absolute;top:10px;right:12px;width:22px;height:22px;border-radius:50%;
+  border:1px solid var(--line);color:var(--dim);font-size:12px;display:flex;align-items:center;justify-content:center}
+.card .cname{font-size:17px;font-weight:700;color:#f4f1e8;margin-top:6px}
+.card .cdesc{font-size:13px;color:var(--dim);line-height:1.5}
+.card .ctag{font-size:11px;color:var(--accent);letter-spacing:.12em}
+/* ---- game over ---- */
+#dead .stats{font-size:16px;color:#d5e1e5;letter-spacing:.05em;margin:10px 0 4px}
+#dead .board-wrap{margin-top:22px;width:min(560px,92vw)}
+#dead .board-title{font-size:13px;color:#71818a;letter-spacing:.1em;margin-bottom:10px}
+#board{background:rgba(25,38,48,.55);border:1px solid #263641;border-radius:8px;padding:6px 0;
+  max-height:38vh;overflow:auto;text-align:left}
+.row{display:flex;align-items:baseline;gap:10px;padding:7px 14px;font-size:14px;color:#ced9df}
+.row+.row{border-top:1px solid rgba(57,83,98,.28)}
+.row .rank{width:36px;color:#71818a;font-variant-numeric:tabular-nums}
+.row .nm{color:#f4f1e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.row .sc{color:var(--gold);font-variant-numeric:tabular-nums}
+.row .meta{color:#71818a;font-size:12px;min-width:150px;text-align:right}
+.row.me{background:rgba(114,239,210,.07)}
+.empty{color:#71818a;font-size:13px;padding:16px}
+.pager{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px}
+.pager button{background:none;border:0;color:var(--accent);font-size:13px;cursor:pointer;font-family:inherit;padding:4px 6px}
+.pager button[disabled]{color:#4b5b66;cursor:default}
+.pager .pinfo{color:#71818a;font-size:13px;font-variant-numeric:tabular-nums}
+/* ---- toast ---- */
+#toast{position:fixed;left:50%;bottom:12%;transform:translateX(-50%);background:rgba(20,29,37,.95);
+  border:1px solid #395362;color:#d5e1e5;font-size:13px;padding:10px 18px;border-radius:6px;
+  z-index:40;pointer-events:none;opacity:0;transition:opacity .2s}
+#toast.show{opacity:1}
+.spinner{width:26px;height:26px;border:2px solid #263641;border-top-color:var(--accent);border-radius:50%;
+  animation:spin .9s linear infinite;margin:18px 0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<!-- 启动 / 连接中 -->
+<div id="boot" class="screen dim">
+  <h1 class="title">ZERO<span class="dot">·</span>HOUR</h1>
+  <div class="spinner"></div>
+  <p class="sub" id="boot-msg">正在检查玩家信息…</p>
+  <p class="err hidden" id="boot-err"></p>
+  <button class="btn hidden" id="boot-retry">重试连接</button>
+</div>
+
+<!-- 新玩家登记 -->
+<div id="name" class="screen dim hidden">
+  <h1 class="title">ZERO<span class="dot">·</span>HOUR</h1>
+  <p class="sub">欢迎新玩家！请输入玩家名称。</p>
+  <form class="name-form" id="name-form" autocomplete="on">
+    <input class="input" id="name-input" type="text" name="nickname" maxlength="16"
+           placeholder="输入玩家名称" autocomplete="nickname" aria-label="玩家名称">
+    <p class="err" id="name-err"></p>
+    <button class="btn" type="submit" id="name-submit">开始游戏</button>
+  </form>
+  <p class="hint">按 Enter 确认名称并开始</p>
+</div>
+
+<!-- 升级选择 -->
+<div id="levelup" class="screen dim hidden">
+  <p class="ctag" style="letter-spacing:.3em;color:#5be0c1;font-size:13px;margin:0">LEVEL UP</p>
+  <h2 style="font-size:26px;letter-spacing:.14em;margin:10px 0 0;color:#f4f1e8">选择一项强化</h2>
+  <div class="cards" id="cards"></div>
+  <p class="hint" id="levelup-hint">按 1 / 2 / 3 选择</p>
+</div>
+
+<!-- 结算 -->
+<div id="dead" class="screen dim hidden">
+  <h2 style="font-size:30px;letter-spacing:.2em;color:#ff8a8d;margin:0">RUN OVER</h2>
+  <p class="stats" id="run-stats">存活 00:00   ·   击杀 0   ·   等级 1</p>
+  <div class="board-wrap">
+    <div class="board-title">服务器排行榜 · 前100条成绩</div>
+    <div id="board"></div>
+    <div class="pager">
+      <button id="prev">上一页</button>
+      <span class="pinfo" id="pinfo">1 / 1 页</span>
+      <button id="next">下一页</button>
+    </div>
+  </div>
+  <p class="hint" id="dead-hint">点击空白处或按 Enter 重新开始</p>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/util.js"></script>
+<script src="js/world.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
